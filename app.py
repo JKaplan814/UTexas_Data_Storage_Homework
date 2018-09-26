@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 from matplotlib import style
 style.use('fivethirtyeight')
 import datetime as dt
+import numpy as np
 
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
@@ -26,7 +27,18 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     return(
-        "home"
+        f"Weather API<br/>"
+        f"Available Routes:<br/><br/>"
+        f"Precipitation:<br/>"
+        f"/api/v1.0/precipitation<br/><br/>"
+        f"Stations:<br/>"
+        f"/api/v1.0/stations<br/><br/>"
+        f"Temperatures:<br/>"
+        f"/api/v1.0/tobs<br/><br/>"
+        f"Temperature summary from a start date onwards (yyyy-mm-dd):<br/>"
+        f"/api/v1.0/(start_date)<br/><br/>"
+        f"Temperature summary between a start date and end date (yyyy-mm-dd):<br/>"
+        f"/api/v1.0/(start_date)/(end_date)<br/><br/>"
     )
 
 @app.route("/api/v1.0/precipitation")
@@ -41,11 +53,11 @@ def precipitation():
 
 @app.route("/api/v1.0/stations")
 def stations():
-    results = session.query(Station.stations).all()
+    results = session.query(Station.station, Station.name).all()
 
-    results_dic = {date: prcp for date, prcp in results}
+    results_dic = {station: name for station, name in results}
 
-    return jsonify(results)
+    return jsonify(results_dic)
 
 @app.route("/api/v1.0/tobs")
 def tobs():
@@ -57,22 +69,22 @@ def tobs():
     return jsonify(results_dic)
 
 @app.route("/api/v1.0/<start>")
-def start(startdate):
+def start(start):
     results = session.query(func.min(Measurement.tobs), func.max(Measurement.tobs),func.avg(Measurement.tobs)).\
-    filter(Measurement.date >= startdate).all()
+    filter(Measurement.date >= start).all()
 
-    results_dic = {date: tobs for date, tobs in results}
+    
 
     return jsonify(results_dic)
 
 @app.route("/api/v1.0/<start>/<end>")
-def startend(startdate,enddate):
+def startend(start,end):
     results = session.query(func.min(Measurement.tobs), func.max(Measurement.tobs),func.avg(Measurement.tobs)).\
-    filter(Measurement.date >= startdate, Measurement.date <= enddate).all()
+    filter(Measurement.date >= start, Measurement.date <= end).all()
 
-    results_dic = {date: tobs for date, tobs in results}
+    results_dic = list(np.ravel(results))
     
-    return jsonify(results)
+    return jsonify(results_dic)
 
 if __name__ == "__main__":
     app.run(debug=True)
