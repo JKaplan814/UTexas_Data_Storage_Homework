@@ -36,9 +36,9 @@ def index():
         f"Temperatures:<br/>"
         f"/api/v1.0/tobs<br/><br/>"
         f"Temperature summary from a start date onwards (yyyy-mm-dd):<br/>"
-        f"/api/v1.0/(start_date)<br/><br/>"
+        f"/api/v1.0/start_date<br/><br/>"
         f"Temperature summary between a start date and end date (yyyy-mm-dd):<br/>"
-        f"/api/v1.0/(start_date)/(end_date)<br/><br/>"
+        f"/api/v1.0/start_date/end_date<br/><br/>"
     )
 
 @app.route("/api/v1.0/precipitation")
@@ -73,7 +73,7 @@ def start(start):
     results = session.query(func.min(Measurement.tobs), func.max(Measurement.tobs),func.avg(Measurement.tobs)).\
     filter(Measurement.date >= start).all()
 
-    
+    results_dic = list(np.ravel(results))
 
     return jsonify(results_dic)
 
